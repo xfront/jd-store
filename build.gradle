@@ -1,0 +1,538 @@
+buildscript {
+    ext {
+        springBootVersion = '1.5.7.RELEASE'
+    }
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+    }
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '4.1'
+}
+
+allprojects {
+    group = "cn.eshop"
+    version = version
+    ext.springCloudVersion = 'Dalston.SR4'
+    ext.springBootMyBatisVersion = '1.2.0'
+    ext.springBootpagehelperVersion = '1.1.0'
+    ext.springBootAdminVersion = '1.5.0'
+    ext.springBootDruidVersion = '1.1.3'
+    ext.springBootRedisVersion = '0.0.1-SNAPSHOT'
+    ext.junitVersion = "4.12"
+    ext.mysqlVersion = "5.1.32"
+    ext.jacksonVersion = "2.8.7"
+    ext.httpclientVersion = "4.3.5"
+    ext.servletapiVersion = "3.1.0"
+    ext.commonslangVersion = "2.6"
+    ext.commonslang3Version = "3.3.2"
+    ext.commonsioVersion = "1.3.2"
+    ext.commonsnetVersion = "3.3"
+    ext.jsqlparserVersion = "4.12"
+    ext.slf4jVersion = "1.7.2"
+    ext.commonsfileuploadVersion = "1.3.1"
+    ext.jedisVersion = "2.7.2"
+    ext.solrjVersion = "5.4.0"
+    ext.freemarkerVersion = "2.3.23"
+    ext.quartzVersion = "2.2.2"
+    ext.fastjsonVersion = "1.2.28"
+    ext.swagger2Version = "2.6.1"
+    ext.lombokVersion = "1.16.18"
+    ext.fastdfsVersion = "1.27.0.0"
+    ext.beetl_starterVersion = "0.0.3"
+    ext.hutoolVersion = "3.0.3"
+    ext.swagger2Version = "2.6.1"
+    ext.logbackkafkaVersion = "0.1.0"
+    ext.apolloclientVersion = "0.8.0"
+
+    apply plugin: "java"
+    apply plugin: 'idea'
+    apply plugin: 'eclipse'
+    if (!(name.contains('common'))) {
+        apply plugin: 'spring-boot'
+    }
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        if (!(name.contains('common'))) {
+            testCompile("org.springframework.boot:spring-boot-starter-test")
+            testCompile("junit:junit:${junitVersion}")
+        }
+    }
+    dependencyManagement {
+        imports {
+            mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+        }
+    }
+}
+
+project("cloud-eureka") {
+    description = "cloud-eureka"
+
+    dependencies {
+        compile("org.springframework.cloud:spring-cloud-starter-eureka-server")
+        compile("com.github.danielwegener:logback-kafka-appender:${logbackkafkaVersion}")
+    }
+}
+project("cloud-config") {
+    description = "cloud-config"
+
+    dependencies {
+        compile("org.springframework.cloud:spring-cloud-starter-eureka")
+        compile("org.springframework.cloud:spring-cloud-config-server")
+    }
+}
+project("cloud-zuul") {
+    description = "cloud-zuul"
+
+    dependencies {
+        compile("org.springframework.cloud:spring-cloud-starter-eureka")
+        compile("org.springframework.cloud:spring-cloud-starter-zuul")
+    }
+}
+project("cloud-turbine") {
+    description = "cloud-turbine"
+
+    dependencies {
+        compile("org.springframework.cloud:spring-cloud-starter-turbine")
+        compile("org.springframework.cloud:spring-cloud-starter-hystrix-dashboard")
+        compile("org.springframework.boot:spring-boot-starter-actuator")
+        compile("org.springframework.cloud:spring-cloud-starter-config")
+    }
+}
+project("cloud-sleuth") {
+    description = "cloud-sleuth"
+
+    dependencies {
+        compile("io.zipkin.java:zipkin-server")
+        compile("io.zipkin.java:zipkin-autoconfigure-ui")
+    }
+}
+project("cloud-admin") {
+    description = "cloud-admin"
+
+    dependencies {
+        compile("de.codecentric:spring-boot-admin-server:${springBootAdminVersion}")
+        compile("de.codecentric:spring-boot-admin-server-ui:${springBootAdminVersion}")
+        compile("org.springframework.boot:spring-boot-starter-actuator")
+        compile("org.springframework.cloud:spring-cloud-starter-eureka")
+    }
+}
+
+project("common-base") {
+    description = "common-base"
+
+    dependencies {
+        compileOnly("javax.servlet:javax.servlet-api:${servletapiVersion}")
+        compileOnly("redis.clients:jedis:${jedisVersion}")
+        compile("org.apache.commons:commons-lang3:${commonslang3Version}")
+        compile("commons-lang:commons-lang:${commonslangVersion}")
+        compile("com.alibaba:fastjson:${fastjsonVersion}")
+        compile("net.oschina.zcx7878:fastdfs-client-java:${fastdfsVersion}")
+        compile("org.slf4j:slf4j-api:${slf4jVersion}")
+        compile("io.springfox:springfox-swagger-ui:${swagger2Version}")
+        compile("io.springfox:springfox-swagger2:${swagger2Version}")
+    }
+}
+project("common-pojo") {
+    description = "common-pojo"
+
+    dependencies {
+        compileOnly("org.projectlombok:lombok:${lombokVersion}")
+    }
+}
+project("common-mapper") {
+    description = "common-mapper"
+
+    dependencies {
+        compile(project(":common-pojo"))
+        compile("mysql:mysql-connector-java:${mysqlVersion}")
+        compile("org.mybatis.spring.boot:mybatis-spring-boot-starter:${springBootMyBatisVersion}")
+        compile("com.github.pagehelper:pagehelper-spring-boot-starter:${springBootpagehelperVersion}")
+        compile("com.alibaba:druid:${springBootDruidVersion}")
+        compile fileTree(dir: 'src', includes: ['/*.xml'])
+    }
+    jar {
+        //指定包名
+        baseName = 'common-mapper'
+
+        //指定包含的文件
+        from('src/main/java') {
+            include '**/*.xml'
+        }
+
+    }
+}
+
+project("service-admin-api") {
+    description = "service-admin-api"
+
+    dependencies {
+        compile(project(":common-base"))
+        compile(project(":common-pojo"))
+        compile("org.springframework.cloud:spring-cloud-starter-feign")
+    }
+}
+project("service-admin") {
+    description = "service-admin-api"
+
+    dependencies {
+        compile(project(":service-admin-api"))
+        compile(project(":common-mapper"))
+        compile("org.springframework.cloud:spring-cloud-starter-eureka")
+        compile("org.springframework.cloud:spring-cloud-starter-zipkin")
+        compile("org.springframework.cloud:spring-cloud-starter-hystrix")
+        compile("org.springframework.cloud:spring-cloud-starter-bus-amqp")
+        compile("org.springframework.cloud:spring-cloud-starter-security")
+        compile("org.springframework.cloud:spring-cloud-starter-oauth2")
+        //compile("com.ctrip.framework.apollo:apollo-client:${apolloclientVersion}")
+    }
+}
+project("web-admin") {
+    description = "web-admin"
+
+    dependencies {
+        compile(project(":service-admin-api"))
+        compile("org.springframework.boot:spring-boot-starter-web")
+        compile("org.springframework.cloud:spring-cloud-starter-eureka")
+        compile("org.springframework.cloud:spring-cloud-starter-hystrix")
+        compile("org.springframework.cloud:spring-cloud-starter-bus-amqp")
+        compile("org.springframework.cloud:spring-cloud-starter-zipkin")
+        compile("org.springframework.boot:spring-boot-starter-aop")
+        compile("org.springframework.boot:spring-boot-starter-actuator")
+        compile("org.springframework.retry:spring-retry")
+        //compile("com.ctrip.framework.apollo:apollo-client:${apolloclientVersion}")
+        compile("com.piggsoft:beetl-spring-boot-starter:${beetl_starterVersion}")
+        compile("commons-fileupload:commons-fileupload:${commonsfileuploadVersion}")
+    }
+}
+
+
+project("service-search-api") {
+    description = "cloud-serviced-search-api"
+
+    dependencies {
+        compile(project(":common-base"))
+        compile(project(":common-pojo"))
+        compile("org.springframework.cloud:spring-cloud-starter-feign")
+    }
+}
+project("service-search") {
+    description = "service-search"
+
+    dependencies {
+        compile(project(":service-search-api"))
+        compile(project(":common-mapper"))
+        compile("org.springframework.cloud:spring-cloud-starter-eureka")
+        compile("org.springframework.cloud:spring-cloud-starter-zipkin")
+        compile("org.springframework.cloud:spring-cloud-starter-hystrix")
+        compile("org.springframework.cloud:spring-cloud-starter-bus-amqp")
+        compile("org.springframework.data:spring-data-solr")
+        //compile("com.ctrip.framework.apollo:apollo-client:${apolloclientVersion}")
+    }
+}
+project("web-search") {
+    description = "web-search"
+
+    dependencies {
+        compile(project(":service-search-api"))
+        compile("org.springframework.boot:spring-boot-starter-web")
+        compile("org.springframework.cloud:spring-cloud-starter-eureka")
+        compile("org.springframework.cloud:spring-cloud-starter-hystrix")
+        compile("org.springframework.cloud:spring-cloud-starter-bus-amqp")
+        compile("org.springframework.cloud:spring-cloud-starter-zipkin")
+        compile("org.springframework.boot:spring-boot-starter-aop")
+        compile("org.springframework.boot:spring-boot-starter-actuator")
+        compile("org.springframework.retry:spring-retry")
+        //compile("com.ctrip.framework.apollo:apollo-client:${apolloclientVersion}")
+        compile("com.piggsoft:beetl-spring-boot-starter:${beetl_starterVersion}")
+    }
+}
+
+
+project("service-portal-api") {
+    description = "cloud-serviced-portal-api"
+
+    dependencies {
+        compile(project(":common-base"))
+        compile(project(":common-pojo"))
+        compile("org.springframework.cloud:spring-cloud-starter-feign")
+    }
+}
+project("service-portal") {
+    description = "service-portal"
+
+    dependencies {
+        compile(project(":service-portal-api"))
+        compile(project(":common-mapper"))
+        compile("org.springframework.cloud:spring-cloud-starter-eureka")
+        compile("org.springframework.cloud:spring-cloud-starter-zipkin")
+        compile("org.springframework.cloud:spring-cloud-starter-hystrix")
+        compile("org.springframework.cloud:spring-cloud-starter-bus-amqp")
+        compile("org.springframework.boot:spring-boot-starter-data-redis")
+        //compile("com.ctrip.framework.apollo:apollo-client:${apolloclientVersion}")
+    }
+}
+project("web-portal") {
+    description = "web-portal"
+
+    dependencies {
+        compile(project(":service-portal-api"))
+        compile("org.springframework.boot:spring-boot-starter-web")
+        compile("org.springframework.cloud:spring-cloud-starter-eureka")
+        compile("org.springframework.cloud:spring-cloud-starter-hystrix")
+        compile("org.springframework.cloud:spring-cloud-starter-bus-amqp")
+        compile("org.springframework.cloud:spring-cloud-starter-zipkin")
+        compile("org.springframework.boot:spring-boot-starter-aop")
+        compile("org.springframework.boot:spring-boot-starter-actuator")
+        compile("org.springframework.retry:spring-retry")
+        //compile("com.ctrip.framework.apollo:apollo-client:${apolloclientVersion}")
+        compile("com.piggsoft:beetl-spring-boot-starter:${beetl_starterVersion}")
+    }
+}
+
+
+project("service-item-api") {
+    description = "cloud-serviced-item-api"
+
+    dependencies {
+        compile(project(":common-base"))
+        compile(project(":common-pojo"))
+        compile("org.springframework.cloud:spring-cloud-starter-feign")
+    }
+}
+project("service-item") {
+    description = "service-item"
+
+    dependencies {
+        compile(project(":service-item-api"))
+        compile(project(":common-mapper"))
+        compile("org.springframework.cloud:spring-cloud-starter-eureka")
+        compile("org.springframework.cloud:spring-cloud-starter-zipkin")
+        compile("org.springframework.cloud:spring-cloud-starter-hystrix")
+        compile("org.springframework.cloud:spring-cloud-starter-bus-amqp")
+        compile("org.springframework.boot:spring-boot-starter-data-redis")
+        //compile("com.ctrip.framework.apollo:apollo-client:${apolloclientVersion}")
+        compile("org.freemarker:freemarker:2.3.9")
+    }
+}
+project("web-item") {
+    description = "web-item"
+
+    dependencies {
+        compile(project(":service-item-api"))
+        compile("org.springframework.boot:spring-boot-starter-web")
+        compile("org.springframework.cloud:spring-cloud-starter-eureka")
+        compile("org.springframework.cloud:spring-cloud-starter-hystrix")
+        compile("org.springframework.cloud:spring-cloud-starter-bus-amqp")
+        compile("org.springframework.cloud:spring-cloud-starter-zipkin")
+        compile("org.springframework.boot:spring-boot-starter-aop")
+        compile("org.springframework.boot:spring-boot-starter-actuator")
+        compile("org.springframework.retry:spring-retry")
+        //compile("com.ctrip.framework.apollo:apollo-client:${apolloclientVersion}")
+        compile("com.piggsoft:beetl-spring-boot-starter:${beetl_starterVersion}")
+
+    }
+}
+
+
+project("service-cart-api") {
+    description = "cloud-serviced-cart-api"
+
+    dependencies {
+        compile(project(":common-base"))
+        compile(project(":common-pojo"))
+        compile("org.springframework.cloud:spring-cloud-starter-feign")
+    }
+}
+project("service-cart") {
+    description = "service-cart"
+
+    dependencies {
+        compile(project(":service-cart-api"))
+        compile(project(":common-mapper"))
+        compile("org.springframework.cloud:spring-cloud-starter-eureka")
+        compile("org.springframework.cloud:spring-cloud-starter-zipkin")
+        compile("org.springframework.cloud:spring-cloud-starter-hystrix")
+        compile("org.springframework.cloud:spring-cloud-starter-bus-amqp")
+        compile("org.springframework.boot:spring-boot-starter-data-redis")
+        compile("org.freemarker:freemarker:2.3.9")
+        //compile("com.ctrip.framework.apollo:apollo-client:${apolloclientVersion}")
+    }
+}
+project("web-cart") {
+    description = "web-cart"
+
+    dependencies {
+        compile(project(":service-cart-api"))
+        compile("org.springframework.boot:spring-boot-starter-web")
+        compile("org.springframework.cloud:spring-cloud-starter-eureka")
+        compile("org.springframework.cloud:spring-cloud-starter-hystrix")
+        compile("org.springframework.cloud:spring-cloud-starter-bus-amqp")
+        compile("org.springframework.cloud:spring-cloud-starter-zipkin")
+        compile("org.springframework.boot:spring-boot-starter-aop")
+        compile("org.springframework.boot:spring-boot-starter-actuator")
+        compile("org.springframework.retry:spring-retry")
+        compile("org.springframework.boot:spring-boot-starter-data-redis")
+        compile("com.piggsoft:beetl-spring-boot-starter:${beetl_starterVersion}")
+        //compile("com.ctrip.framework.apollo:apollo-client:${apolloclientVersion}")
+    }
+}
+
+
+project("service-notify-api") {
+    description = "cloud-serviced-notify-api"
+
+    dependencies {
+        compile(project(":common-base"))
+        compile(project(":common-pojo"))
+        compile("org.springframework.cloud:spring-cloud-starter-feign")
+    }
+}
+project("service-notify") {
+    description = "service-notify"
+
+    dependencies {
+        compile(project(":service-notify-api"))
+        compile(project(":common-mapper"))
+        compile("org.springframework.cloud:spring-cloud-starter-eureka")
+        compile("org.springframework.cloud:spring-cloud-starter-zipkin")
+        compile("org.springframework.cloud:spring-cloud-starter-hystrix")
+        compile("org.springframework.cloud:spring-cloud-starter-bus-amqp")
+        compile("org.springframework.boot:spring-boot-starter-data-redis")
+        //compile("com.ctrip.framework.apollo:apollo-client:${apolloclientVersion}")
+    }
+}
+
+
+project("service-sso-api") {
+    description = "cloud-serviced-sso-api"
+
+    dependencies {
+        compile(project(":common-base"))
+        compile(project(":common-pojo"))
+        compile("org.springframework.cloud:spring-cloud-starter-feign")
+    }
+}
+project("service-sso") {
+    description = "service-sso"
+
+    dependencies {
+        compile(project(":service-sso-api"))
+        compile(project(":common-mapper"))
+        compile("org.springframework.cloud:spring-cloud-starter-eureka")
+        compile("org.springframework.cloud:spring-cloud-starter-zipkin")
+        compile("org.springframework.cloud:spring-cloud-starter-hystrix")
+        compile("org.springframework.cloud:spring-cloud-starter-bus-amqp")
+        compile("org.springframework.boot:spring-boot-starter-data-redis")
+        compile("org.freemarker:freemarker:2.3.9")
+        //compile("com.ctrip.framework.apollo:apollo-client:${apolloclientVersion}")
+    }
+}
+project("web-sso") {
+    description = "web-sso"
+
+    dependencies {
+        compile(project(":service-sso-api"))
+        compile(project(":service-notify-api"))
+        compile("org.springframework.boot:spring-boot-starter-web")
+        compile("org.springframework.cloud:spring-cloud-starter-eureka")
+        compile("org.springframework.cloud:spring-cloud-starter-hystrix")
+        compile("org.springframework.cloud:spring-cloud-starter-bus-amqp")
+        compile("org.springframework.cloud:spring-cloud-starter-zipkin")
+        compile("org.springframework.boot:spring-boot-starter-aop")
+        compile("org.springframework.boot:spring-boot-starter-actuator")
+        compile("org.springframework.retry:spring-retry")
+        compile("org.springframework.boot:spring-boot-starter-data-redis")
+        //compile("com.ctrip.framework.apollo:apollo-client:${apolloclientVersion}")
+        compile("com.piggsoft:beetl-spring-boot-starter:${beetl_starterVersion}")
+    }
+}
+
+
+project("service-order-api") {
+    description = "cloud-serviced-order-api"
+
+    dependencies {
+        compile(project(":common-base"))
+        compile(project(":common-pojo"))
+        compile("org.springframework.cloud:spring-cloud-starter-feign")
+    }
+}
+project("service-order") {
+    description = "service-order"
+
+    dependencies {
+        compile(project(":service-order-api"))
+        compile(project(":service-sso-api"))
+        compile(project(":common-mapper"))
+        compile("org.springframework.cloud:spring-cloud-starter-eureka")
+        compile("org.springframework.cloud:spring-cloud-starter-zipkin")
+        compile("org.springframework.cloud:spring-cloud-starter-hystrix")
+        compile("org.springframework.cloud:spring-cloud-starter-bus-amqp")
+        compile("org.springframework.boot:spring-boot-starter-data-redis")
+        //compile("com.ctrip.framework.apollo:apollo-client:${apolloclientVersion}")
+        compile("org.freemarker:freemarker:2.3.9")
+    }
+}
+project("web-order") {
+    description = "web-order"
+
+    dependencies {
+        compile(project(":service-order-api"))
+        compile(project(":service-notify-api"))
+        compile(project(":service-sso-api"))
+        compile(project(":service-cart-api"))
+        compile("org.springframework.boot:spring-boot-starter-web")
+        compile("org.springframework.cloud:spring-cloud-starter-eureka")
+        compile("org.springframework.cloud:spring-cloud-starter-hystrix")
+        compile("org.springframework.cloud:spring-cloud-starter-bus-amqp")
+        compile("org.springframework.cloud:spring-cloud-starter-zipkin")
+        compile("org.springframework.boot:spring-boot-starter-aop")
+        compile("org.springframework.boot:spring-boot-starter-actuator")
+        compile("org.springframework.retry:spring-retry")
+        compile("org.springframework.boot:spring-boot-starter-data-redis")
+        //compile("com.ctrip.framework.apollo:apollo-client:${apolloclientVersion}")
+        compile("com.piggsoft:beetl-spring-boot-starter:${beetl_starterVersion}")
+    }
+}
+
+configure(rootProject) {
+    description = "B2C web site just like jd-store"
+
+//    dependencyManagement {
+//        imports {
+//            mavenBom "io.projectreactor:reactor-bom"
+//        }
+//        resolutionStrategy {
+//            cacheChangingModulesFor 0, 'seconds'
+//        }
+//        applyMavenExclusions = false
+//    }
+
+    // don't publish the default jar for the root project
+    configurations.archives.artifacts.clear()
+
+    dependencies {  // for integration tests
+//        testCompile(project(":spring-aop"))
+
+    }
+
+//    task buildDocker(type: Docker, dependsOn: bootRepackage) {
+//        push = true
+//        applicationName = jar.baseName
+//        dockerfile = file('Dockerfile')
+//        doFirst {
+//            copy {
+//                from jar
+//                into stageDir
+//            }
+//        }
+//    }
+
+}

@@ -1,0 +1,15 @@
+server:
+    port: 8506
+
+turbine:
+  aggregator:
+    clusterConfig: default   # 指定聚合哪些集群，多个使用","分割，默认为default。可使用http://.../turbine.stream?cluster={clusterConfig之一}访问
+  appConfig: service-admin,web-admin,service-search,web-search,service-portal,web-portal,service-item,web-item,service-cart,web-cart,service-notify,web-notify,service-sso,web-order,service-order,web-cart  # 配置Eureka中的serviceId列表，表明监控哪些服务
+  clusterNameExpression: new String("default")
+
+spring:
+  rabbitmq:
+    host: 219.230.50.73
+    port: 5672
+    username: guest
+    password: guest
